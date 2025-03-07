@@ -1,0 +1,32 @@
+{
+  "name": "expensetracker",
+  "version": "1.0.0",
+  "description": "Build a simple expense tracker application to manage your finances. The application should allow users to add, delete, and view their expenses. The application should also provide a summary of the expenses.",
+  "main": "./src/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lamloi1109/ExpenseTracker.git"
+  },
+  "keywords": [
+    "CLI",
+    "Expense",
+    "Tracker",
+    "Programming",
+    "Language",
+    "Filesystem",
+    "Logic",
+    "Building"
+  ],
+  "author": "lamloi109",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lamloi1109/ExpenseTracker/issues"
+  },
+  "homepage": "https://github.com/lamloi1109/ExpenseTracker#readme",
+  "dependencies": {
+    "commander": "^13.1.0"
+  }
+}
