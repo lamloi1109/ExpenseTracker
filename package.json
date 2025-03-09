@@ -28,5 +28,8 @@
   "homepage": "https://github.com/lamloi1109/ExpenseTracker#readme",
   "dependencies": {
     "commander": "^13.1.0"
+  },
+  "src": {
+    "expense-tracker": "./src/main.js expense-tracker"
   }
 }

@@ -55,3 +55,90 @@
 // commit -m 'feat: exportData'
 
 // - Chức năng help để giới thiệu về các chức năng trong dự án
+
+const { errorMonitor } = require('events')
+const {program} = require('./commander')
+const fs = require('fs').promises
+const expenseList = []
+const path = `${__dirname}\\Database\\expenserTracker.json`
+
+program
+    .command('expense-tracker')
+    .description('manager financial')
+    .argument('<string...>', 'command')
+    .option('--description', 'description', '')
+    .option('--amount', 'amount', '')
+    .option('--category', 'category', '')
+    .option('--created_at', 'created_at', '')
+    .option('--updated_at', 'updated_at', '')
+    .option('--status', 'status', '')
+
+    .action((expenses, options) => {
+        // Thêm
+        const command = expenses[0]
+        const keyList = Object.keys(options)
+        const expense = keyList.reduce((expense, attribute, index) => {
+            expense[`${attribute}`] = expenses[index + 1]
+            return expense
+        }, {})
+        if(command == 'add') {
+            const id = getMaxId(expenseList) + 1
+            if( id === 0 ) {
+                showMesage(`Expense doesn't exist.`)
+                return
+            }   
+            
+            expense.id = id
+            expense.created_at = getCurrentTime()
+            expenseList.push(expense)
+            storageData(path, JSON.stringify(expenseList), 'w')
+        }
+    })
+
+    function getMaxId(expenseList) {
+
+        if(!Array.isArray(expenseList)) return -1
+        
+        if (expenseList.length === 0) return 0
+
+        const maxId = expenseList.reduce((id, currrentId) => {
+            id = currrentId > id ? currrentId : id
+            return id
+        }, 0)
+        
+        return maxId
+    }
+ 
+    function getCurrentTime() {
+        const currentDate = new Date()
+
+        const year = currentDate.getFullYear()
+        const month =  `0${(currentDate.getMonth() + 1)}`.slice(-2)
+        const day = `0${currentDate.getDate()}`.slice(-2)
+        const hour = currentDate.getHours()
+        const minute = currentDate.getMinutes()
+        const sencond = currentDate.getSeconds()
+
+        return `${day}/${month}/${year} ${hour}:${minute}:${sencond}`
+    }
+
+    function showMesage(message, type) {
+        if(type === 'error') {
+            console.log(`Error: `)
+            console.log(`- ${message}`)
+            return
+        }
+    }
+
+    async function storageData(path, data, mode) {
+        try{
+            await fs.writeFile(path, data, {flag: mode})
+        } catch(error) {
+            console.log(error)
+        }
+    }
+
+program.parse()
+
+
+
