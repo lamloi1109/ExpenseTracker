@@ -58,8 +58,9 @@
 
 const { errorMonitor } = require('events')
 const {program} = require('./commander')
+const { readFile } = require('fs')
 const fs = require('fs').promises
-const expenseList = []
+let expenseList = []
 const path = `${__dirname}\\Database\\expenserTracker.json`
 
 program
@@ -73,17 +74,27 @@ program
     .option('--updated_at', 'updated_at', '')
     .option('--status', 'status', '')
 
-    .action((expenses, options) => {
+    .action(async (expenses, options) => {
+        // Kiêm tra expense không có giá trị
+        if (!expenses || expenses.length === 0) {
+            showMesage("Invalid command. Please provide an action.", "error")
+        }
+        // load dữ liệu từ file json
+        expenseList = await readData(path)
+
         // Thêm
         const command = expenses[0]
-        const keyList = Object.keys(options)
+        const keyList = options ? Object.keys(options) : []
         const expense = keyList.reduce((expense, attribute, index) => {
             expense[`${attribute}`] = expenses[index + 1]
             return expense
         }, {})
-        if(command == 'add') {
+
+        const validCommandList = ['add', 'update', 'delete', 'sum', 'filter', 'exportData']
+
+        if(validCommandList.includes(command)) {
             const id = getMaxId(expenseList) + 1
-            if( id === 0 ) {
+            if(!id) {
                 showMesage(`Expense doesn't exist.`)
                 return
             }   
@@ -101,7 +112,8 @@ program
         
         if (expenseList.length === 0) return 0
 
-        const maxId = expenseList.reduce((id, currrentId) => {
+        const maxId = expenseList.reduce((id, expense) => {
+            const currrentId = expense.id ?? 0
             id = currrentId > id ? currrentId : id
             return id
         }, 0)
@@ -134,11 +146,19 @@ program
         try{
             await fs.writeFile(path, data, {flag: mode})
         } catch(error) {
-            console.log(error)
+            showMesage("error", `Failed to save data: ${error.message}`)
         }
     }
 
+    async function readData(path) {
+        try {
+            const data = await fs.readFile(path, 'utf-8')
+            return JSON.parse(data)
+        } catch(error) {
+            showMesage('error', `${error.message}`)
+            return []
+        }
+    }
+
+
 program.parse()
-
-
-
