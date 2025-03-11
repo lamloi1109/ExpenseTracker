@@ -61,7 +61,7 @@ const {program} = require('./commander')
 const { readFile } = require('fs')
 const fs = require('fs').promises
 let expenseList = []
-const path = `${__dirname}\\Database\\expenserTracker.json`
+const path = `${__dirname}\\Database\\expenseTracker.json`
 
 program
     .command('expense-tracker')
@@ -73,6 +73,7 @@ program
     .option('--created_at', 'created_at', '')
     .option('--updated_at', 'updated_at', '')
     .option('--status', 'status', '')
+    .option('--id', 'id', '')
 
     .action(async (expenses, options) => {
         // Kiêm tra expense không có giá trị
@@ -84,7 +85,7 @@ program
 
         // Thêm
         const command = expenses[0]
-        const keyList = options ? Object.keys(options) : []
+        const keyList = options ? Object.keys(options).filter((expense) => options[expense] !== '') : []
         const expense = keyList.reduce((expense, attribute, index) => {
             expense[`${attribute}`] = expenses[index + 1]
             return expense
@@ -92,7 +93,7 @@ program
 
         const validCommandList = ['add', 'update', 'delete', 'sum', 'filter', 'exportData']
 
-        if(validCommandList.includes(command)) {
+        if(validCommandList.includes(command) && command === 'add') {
             const id = getMaxId(expenseList) + 1
             if(!id) {
                 showMesage(`Expense doesn't exist.`)
@@ -104,6 +105,39 @@ program
             expenseList.push(expense)
             storageData(path, JSON.stringify(expenseList), 'w')
         }
+
+        if(validCommandList.includes(command) && command === 'delete') {
+            const id = expense?.id
+            console.time('default')
+
+            // expenseList = expenseList.filter((expense) => expense.id != id)
+            // Chậm -> O(n) -> Tốn bộ nhớ
+            //  Dùng khi cần giữ nguyên mảng gốc
+
+            const index = expenseList.findIndex((expense) => expense.id == id)
+            if(index !== -1) {
+                expenseList.splice(index, 1)
+            }
+            // Nhanh hơn O(n) tùy trường hợp tìm thấy index nhanh hay chậm
+            // Khi xóa 1 phần tử
+            // Trong trường hợp đã khởi tạo map từ đầu thì tốc độ sẽ nhanh hơn
+            // const expenseMap = new Map(expenseList.map((expense) => [expense.id, expense]))
+            // expenseMap.delete(id)
+            // for (let index = 0; index < expenseList.length; index++) {
+            //     const expense = expenseList[index];
+            //     if(expense.id === id) {
+            //         expenseList.splice(index, 1)
+            //     }
+            // }
+
+
+            // console.table(expenseList)
+ 
+            console.log(`Deleted`)
+            console.timeEnd('default')
+        }
+
+
     })
 
     function getMaxId(expenseList) {
