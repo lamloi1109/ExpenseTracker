@@ -90,7 +90,7 @@ program
         for (let index = 1; index <= datas.length; index += 2) {
             const data = datas[index];
             const key = datas[index - 1];
-            expense[`${key}`] = data
+            expense[`${key.replace("--","")}`] = data
         }
 
         // const keyList = options ? Object.keys(options).filter((expense) => options[expense] !== '') : []
@@ -150,15 +150,37 @@ program
 
         if(command === 'update') {
             console.time('update')
+            const id = expense?.id
+
             // update cho ai? -> dựa vào điều kiện gì?
             // + Id 
-            console.log(expense)
+            const index = expenseList.findIndex((expense) => expense.id == id)
+            if(index == -1) {
+                console.log(`ID: ${id} is not found!`)
+                return
+            }
+            // expenseList[index] = {...expenseList[index], ...expense}
+            
+            let updateExpense = expenseList.find((expense) => expense.id == id)
+            if(updateExpense) {
+                updateExpense = {...updateExpense, ...expense}
+                Object.assign(expenseList[index], updateExpense)
+                // Hộp nhất các object về object được target
+                // Có tính chất enumerable -> Có thể đươc truy cập trong vòng lâp
+                // enumerable: true
+                // enumerable: false
+            }
+
+
             // + Thông tin upate
             // --id 1 --description abc --amount 10 ...
             // update cái gì?
             // update trong bao lâu
             // làm sao để nhanh hơn
             // update xong thì thông báo cái gì
+
+            // Có muốn giữ nguyên mảng gốc hay không???
+
             console.timeEnd('update')
         }
 
