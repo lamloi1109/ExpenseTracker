@@ -74,9 +74,9 @@ program
     .option('--updated_at', 'updated_at', '')
     .option('--status', 'status', '')
     .option('--id', 'id', '')
-
     .action(async (expenses, options) => {
         // Kiêm tra expense không có giá trị
+
         if (!expenses || expenses.length === 0) {
             showMesage("Invalid command. Please provide an action.", "error")
         }
@@ -85,18 +85,31 @@ program
 
         // Thêm
         const command = expenses[0]
-        const keyList = options ? Object.keys(options).filter((expense) => options[expense] !== '') : []
-        const expense = keyList.reduce((expense, attribute, index) => {
-            expense[`${attribute}`] = expenses[index + 1]
-            return expense
-        }, {})
+        const datas = process.argv.slice(4)
+        const expense = {}
+        for (let index = 1; index <= datas.length; index += 2) {
+            const data = datas[index];
+            const key = datas[index - 1];
+            expense[`${key.replace("--","")}`] = data
+        }
 
-        const validCommandList = ['add', 'update', 'delete', 'sum', 'filter', 'exportData']
+        // const keyList = options ? Object.keys(options).filter((expense) => options[expense] !== '') : []
+        // const expense = keyList.reduce((expense, attribute, index) => {
+        //     expense[`${attribute}`] = expenses[index + 1]
+        //     return expense
+        // }, {})
 
-        if(validCommandList.includes(command) && command === 'add') {
+        const validCommandList =  ['add', 'update', 'delete', 'sum', 'filter', 'exportData']
+
+        if(!validCommandList.includes(command)) {
+            showMesage('Invalid command!','error')
+            return
+        }
+
+        if(command === 'add') {
             const id = getMaxId(expenseList) + 1
             if(!id) {
-                showMesage(`Expense doesn't exist.`)
+                showMesage(`Expense doesn't exist.`, 'error')
                 return
             }   
             
@@ -106,7 +119,7 @@ program
             storageData(path, JSON.stringify(expenseList), 'w')
         }
 
-        if(validCommandList.includes(command) && command === 'delete') {
+        if(command === 'delete') {
             const id = expense?.id
             console.time('default')
 
@@ -130,13 +143,46 @@ program
             //     }
             // }
 
-
-            // console.table(expenseList)
- 
+            // console.table(expenseList) 
             console.log(`Deleted`)
             console.timeEnd('default')
         }
 
+        if(command === 'update') {
+            console.time('update')
+            const id = expense?.id
+
+            // update cho ai? -> dựa vào điều kiện gì?
+            // + Id 
+            const index = expenseList.findIndex((expense) => expense.id == id)
+            if(index == -1) {
+                console.log(`ID: ${id} is not found!`)
+                return
+            }
+            // expenseList[index] = {...expenseList[index], ...expense}
+            
+            let updateExpense = expenseList.find((expense) => expense.id == id)
+            if(updateExpense) {
+                updateExpense = {...updateExpense, ...expense}
+                Object.assign(expenseList[index], updateExpense)
+                // Hộp nhất các object về object được target
+                // Có tính chất enumerable -> Có thể đươc truy cập trong vòng lâp
+                // enumerable: true
+                // enumerable: false
+            }
+
+
+            // + Thông tin upate
+            // --id 1 --description abc --amount 10 ...
+            // update cái gì?
+            // update trong bao lâu
+            // làm sao để nhanh hơn
+            // update xong thì thông báo cái gì
+
+            // Có muốn giữ nguyên mảng gốc hay không???
+
+            console.timeEnd('update')
+        }
 
     })
 
@@ -194,5 +240,8 @@ program
         }
     }
 
+    function updateExpense() {
+
+    }
 
 program.parse()
