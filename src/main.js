@@ -74,6 +74,8 @@ program
     .option('--updated_at', 'updated_at', '')
     .option('--status', 'status', '')
     .option('--id', 'id', '')
+    .option('--max','max','')
+    .option('--min', 'min','')
     .action(async (expenses, options) => {
         // Kiêm tra expense không có giá trị
 
@@ -99,7 +101,7 @@ program
         //     return expense
         // }, {})
 
-        const validCommandList =  ['add', 'update', 'delete', 'sum', 'filter', 'exportData']
+        const validCommandList =  ['add', 'update', 'delete', 'sum', 'filter', 'exportData', 'setMax', 'setMin']
 
         if(!validCommandList.includes(command)) {
             showMesage('Invalid command!','error')
@@ -116,7 +118,6 @@ program
             expense.id = id
             expense.created_at = getCurrentTime()
             expenseList.push(expense)
-            storageData(path, JSON.stringify(expenseList), 'w')
         }
 
         if(command === 'delete') {
@@ -184,7 +185,53 @@ program
             console.timeEnd('update')
         }
 
+        if(command === 'setMax') {
+            const limitType = 'max'
+            setLimit(limitType,expense)
+        }   
+
+        if(command === 'setMin'){
+            const limitType = 'min'
+            setLimit(limitType,expense)
+        }
+
+        storageData(path, JSON.stringify(expenseList), 'w')
     })
+
+    function setLimit(type, expense) {
+            if (!Object.keys(expense).includes(type)) {
+                console.log(`${type} is not found.`)
+                return
+            }
+            const value = expense[`${type}`] ?? 0
+            const id = expense.id
+            const currentExpense = expenseList.find((expense) => expense.id == id)
+            const currentMin = currentExpense.min
+            const currentMax = currentExpense.max
+
+            if(!currentExpense) return 
+
+            // Kiểm tra xem max có lớn hơn min ???
+            if (type === 'max' && value < currentMin && currentMin !== 0) {
+                
+                console.log(`${value} is invalid value becasue it less than min.`)
+                return
+            }
+
+            if ( type === 'min' && value > currentMax && currentMax !== 0) {
+                
+                console.log(`${value} is invalid value becasue it greater than max.`)
+                return
+            }
+
+            currentExpense[`${type}`] = Number.parseFloat(value)
+            currentExpense.updated_at = getCurrentTime()
+            console.log(`Setted ${type} is ${expense[`${type}`]}`)
+            console.log(currentExpense)
+            return
+        
+    }
+
 
     function getMaxId(expenseList) {
 
@@ -238,10 +285,6 @@ program
             showMesage('error', `${error.message}`)
             return []
         }
-    }
-
-    function updateExpense() {
-
     }
 
 program.parse()
