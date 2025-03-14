@@ -1,26 +1,9 @@
 // startup dự án
 // chia branch ĐEV
 
-// - Thêm chi phí với mô tả hoạt động và số tiền đi kèm
-// commit -m 'feat: Add expense'
-// + Xử lý đầu vào
-// + Xử lý commander
-// + Xử lý đọc ghi file
-// + Ghi file
-// + Đọc file
-// + Chuyển tử chuổi sang json
-// + Chuyển từ json sang chuỗi
-// + Tạo instance của expense 
-// - Id
-// - description
-// - created_at
-// - updated_at
-// - amount
-// - caterogy
-// - max
-// - min
+// - Thêm chi phí với mô tả hoạt động và số tiền đi kèm Done
 
-// - Cập nhật chi phí
+// - Cập nhật chi phí Done
 // commit -m 'feat: Update expense'
 // Nhân tham số đầu vào
 // Xử lý action từ command
@@ -29,7 +12,7 @@
 // Cập nhật giá trị của id đó
 // Ghi lại thay đổi vào file json
 
-// - Xóa chi phí
+// - Xóa chi phí Done
 // commit -m 'feat: Delete expense'
 // Tìm id 
 
@@ -56,13 +39,13 @@
 
 // - Chức năng help để giới thiệu về các chức năng trong dự án
 
-const { errorMonitor } = require('events')
+const { takeCoverage } = require('v8')
 const {program} = require('./commander')
 const { readFile } = require('fs')
 const fs = require('fs').promises
 let expenseList = []
 const path = `${__dirname}\\Database\\expenseTracker.json`
-
+const totalRow = 300
 program
     .command('expense-tracker')
     .description('manager financial')
@@ -76,6 +59,9 @@ program
     .option('--id', 'id', '')
     .option('--max','max','')
     .option('--min', 'min','')
+    .option('--page', 'page', '')
+    .option('--limit', 'limit', '')
+
     .action(async (expenses, options) => {
         // Kiêm tra expense không có giá trị
 
@@ -101,7 +87,7 @@ program
         //     return expense
         // }, {})
 
-        const validCommandList =  ['add', 'update', 'delete', 'sum', 'filter', 'exportData', 'setMax', 'setMin']
+        const validCommandList =  ['add', 'update', 'delete', 'sum', 'filter', 'exportData', 'setMax', 'setMin', 'viewAllExpenses']
 
         if(!validCommandList.includes(command)) {
             showMesage('Invalid command!','error')
@@ -193,6 +179,24 @@ program
         if(command === 'setMin'){
             const limitType = 'min'
             setLimit(limitType,expense)
+        }
+
+        if(command === 'viewAllExpenses') {
+            // Phân trang
+            const page = expense.page ?? 1
+            const totalPage = Math.floor(expenseList.length / totalRow)
+            if( page > totalPage) {
+                console.log("Invalid page!")
+                return
+            }
+            // Tổng số trang
+            const totalRowInPage = page * totalRow 
+            
+            const filteredList =  expenseList.filter((expense) => {
+                return  Number.parseInt(expense.id) >=  totalRowInPage - totalRow &&  Number.parseInt(expense.id)  <= totalRowInPage
+            })
+
+            console.table(filteredList)
         }
 
         storageData(path, JSON.stringify(expenseList), 'w')
